@@ -44,7 +44,7 @@
             "embedUrl": "{content:link}"
         }
     </script>
-    <link rel="stylesheet" href="/skin/css/video-short.css?v=shortdetail_layout_fix_20260626a">
+    <link rel="stylesheet" href="/skin/css/video-short.css?v=shortdetail_ui_align_20260626b">
 </head>
 <body class="sidebar-embedded-page video-short-static-detail">
     <!-- TOPBAR_START -->
@@ -82,7 +82,7 @@
                                                 <div class="video-portrait">
                                                     <div class="short-feed-mobile-topbar">
                                                         <div class="short-feed-mobile-author">
-                                                            <span class="short-feed-mobile-level" aria-label="认证账号"><i class="fas fa-certificate"></i></span>
+                                                            <img src="{pboot:sitelogo}" alt="WishPower" loading="lazy">
                                                             <div class="short-feed-mobile-author-text">
                                                                 <strong>WishPower</strong>
                                                                 <span>{content:visits} views | {sort:name}</span>
@@ -101,7 +101,6 @@
                                                             preload="none"
                                                             poster="{content:ico}">
                                                         </video>
-                                                        <div class="short-feed-loading" hidden>视频加载中...</div>
                                                         <div class="short-feed-error" hidden>视频授权获取失败，请刷新页面后重试</div>
                                                     </div>
 
@@ -151,7 +150,10 @@
                                                 <aside class="short-video-desktop-detail short-feed-desktop-detail short-feed-detail-card">
                                                     <div class="short-feed-detail-head">
                                                         <div class="short-feed-detail-user">
-                                                            <img src="/touxiang.png" alt="WishPower">
+                                                            <span class="short-feed-detail-avatar-wrap">
+                                                                <img class="short-feed-detail-avatar" src="{pboot:sitelogo}" alt="WishPower">
+                                                                <img class="short-feed-detail-v-badge" src="/skin/images/vh-cut.png" alt="V认证" loading="lazy">
+                                                            </span>
                                                             <strong>WishPower</strong>
                                                         </div>
                                                         <div class="short-feed-detail-actions">
