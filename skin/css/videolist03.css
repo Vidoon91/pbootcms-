@@ -3644,23 +3644,15 @@ body.short-feed-open {
     height: 100dvh !important;
   }
 
-  .short-feed-overlay .short-feed-video-box video,
   .short-feed-overlay .short-feed-video-box .video-js,
-  .short-feed-overlay .short-feed-video-box .vjs-tech,
-  .short-feed-overlay .short-feed-video-box .tcplayer,
-  .short-feed-overlay .short-feed-video-box .vjs-poster,
-  .short-feed-overlay .short-feed-video-box .vjs-poster img {
+  .short-feed-overlay .short-feed-video-box .tcplayer {
     position: absolute !important;
     inset: 0 !important;
     width: 100% !important;
     height: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
-    object-fit: contain !important;
-    object-position: center top !important;
-    background-position: center top !important;
-    background-size: contain !important;
-    background-repeat: no-repeat !important;
+    background: transparent !important;
     transition: none !important;
     transform: none !important;
   }
@@ -3675,6 +3667,23 @@ body.short-feed-open {
     border-radius: 0 !important;
   }
 
+  .short-feed-overlay .short-feed-video-box > video,
+  .short-feed-overlay .short-feed-video-box .vjs-tech,
+  .short-feed-overlay .short-feed-video-box .vjs-poster,
+  .short-feed-overlay .short-feed-video-box .vjs-poster img {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    object-fit: contain !important;
+    background-size: contain !important;
+    background-repeat: no-repeat !important;
+    transition: none !important;
+    transform: none !important;
+  }
+
   .short-feed-overlay .short-feed-video-box .video-js,
   .short-feed-overlay .short-feed-video-box .vjs-tech,
   .short-feed-overlay .short-feed-video-box .tcplayer,
@@ -3683,16 +3692,42 @@ body.short-feed-open {
     background: transparent !important;
   }
 
-  .short-feed-overlay .short-feed-video-box .vjs-poster {
-    position: absolute !important;
-    inset: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
+  .short-feed-overlay .short-feed-video-box.is-portrait-video > video,
+  .short-feed-overlay .short-feed-video-box.is-portrait-video .vjs-tech,
+  .short-feed-overlay .short-feed-video-box.is-portrait-video .vjs-poster img {
+    object-position: center top !important;
+  }
+
+  .short-feed-overlay .short-feed-video-box.is-portrait-video .vjs-poster {
     background-position: center top !important;
-    background-size: contain !important;
-    background-repeat: no-repeat !important;
-    transition: none !important;
-    transform: none !important;
+  }
+
+  .short-feed-overlay .short-feed-video-box.is-landscape-video > video,
+  .short-feed-overlay .short-feed-video-box.is-landscape-video .vjs-tech,
+  .short-feed-overlay .short-feed-video-box.is-landscape-video .vjs-poster img {
+    object-position: center center !important;
+  }
+
+  .short-feed-overlay .short-feed-video-box.is-landscape-video .vjs-poster {
+    background-position: center center !important;
+  }
+
+  .short-feed-overlay .short-feed-video-box.is-video-layout-pending > video,
+  .short-feed-overlay .short-feed-video-box.is-video-layout-pending .video-js,
+  .short-feed-overlay .short-feed-video-box.is-video-layout-pending .vjs-tech,
+  .short-feed-overlay .short-feed-video-box.is-video-layout-pending .tcplayer,
+  .short-feed-overlay .short-feed-video-box.is-video-layout-pending .vjs-poster {
+    opacity: 0 !important;
+    visibility: hidden !important;
+  }
+
+  .short-feed-overlay .short-feed-video-box.is-video-layout-ready > video,
+  .short-feed-overlay .short-feed-video-box.is-video-layout-ready .video-js,
+  .short-feed-overlay .short-feed-video-box.is-video-layout-ready .vjs-tech,
+  .short-feed-overlay .short-feed-video-box.is-video-layout-ready .tcplayer,
+  .short-feed-overlay .short-feed-video-box.is-video-layout-ready .vjs-poster {
+    opacity: 1 !important;
+    visibility: visible !important;
   }
 
   .short-feed-overlay .short-feed-video-box.is-portrait-video::after {

@@ -118,6 +118,7 @@ document.addEventListener('DOMContentLoaded', function() {
             description: descriptionNode?.textContent.trim() || card.dataset.description || '',
             licenseUrl: card.dataset.licenseUrl || '',
             licenseKey: card.dataset.licenseKey || '',
+            layout: null,
             mobileCopyNode,
             detailNode,
             productNode
@@ -372,20 +373,62 @@ document.addEventListener('DOMContentLoaded', function() {
     function prepareVideoElement(slide, video) {
         const box = slide?.querySelector('.short-feed-video-box');
         if (!box) return null;
+
         box.innerHTML = createVideoMarkup(video);
-        box.classList.remove('is-portrait-video');
+        box.classList.remove(
+            'is-portrait-video',
+            'is-landscape-video',
+            'is-video-layout-pending',
+            'is-video-layout-ready'
+        );
+
+        if (video.layout === 'portrait') {
+            box.classList.add(
+                'is-portrait-video',
+                'is-video-layout-ready'
+            );
+        } else if (video.layout === 'landscape') {
+            box.classList.add(
+                'is-landscape-video',
+                'is-video-layout-ready'
+            );
+        } else {
+            box.classList.add('is-video-layout-pending');
+        }
+
         return box.querySelector('video');
     }
 
-    function updateVideoPresentationMode(videoElement, slide) {
+    function updateVideoPresentationMode(videoElement, slide, video) {
         const box = slide?.querySelector('.short-feed-video-box');
-        if (!box || !videoElement) return;
+        if (!box || !videoElement || !video) return false;
 
         const videoWidth = Number(videoElement.videoWidth) || 0;
         const videoHeight = Number(videoElement.videoHeight) || 0;
-        const isPortraitVideo = videoHeight > videoWidth;
+        if (!videoWidth || !videoHeight) return false;
 
-        box.classList.toggle('is-portrait-video', isPortraitVideo);
+        video.layout = videoHeight > videoWidth
+            ? 'portrait'
+            : 'landscape';
+
+        box.classList.remove(
+            'is-video-layout-pending',
+            'is-video-layout-ready',
+            'is-portrait-video',
+            'is-landscape-video'
+        );
+
+        box.classList.add(
+            video.layout === 'portrait'
+                ? 'is-portrait-video'
+                : 'is-landscape-video'
+        );
+
+        requestAnimationFrame(() => {
+            box.classList.add('is-video-layout-ready');
+        });
+
+        return true;
     }
 
     function destroyActivePlayer() {
@@ -509,7 +552,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
 
-                showSlideMessage(slide, 'loading', false);
+                if (video.layout !== null) {
+                    showSlideMessage(slide, 'loading', false);
+                }
 
                 const playResult = activePlayer.play();
 
@@ -576,7 +621,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
 
                     syncSlideProgress(slide);
-                    updateVideoPresentationMode(videoElement, slide);
+
+                    const layoutReady = updateVideoPresentationMode(
+                        videoElement,
+                        slide,
+                        video
+                    );
+
+                    if (layoutReady) {
+                        showSlideMessage(slide, 'loading', false);
+                    }
                 });
 
                 activePlayer.on('pause', () => {
