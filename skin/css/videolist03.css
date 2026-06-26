@@ -3648,13 +3648,31 @@ body.short-feed-open {
   .short-feed-overlay .short-feed-video-box .video-js,
   .short-feed-overlay .short-feed-video-box .vjs-tech,
   .short-feed-overlay .short-feed-video-box .tcplayer,
+  .short-feed-overlay .short-feed-video-box .vjs-poster,
   .short-feed-overlay .short-feed-video-box .vjs-poster img {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
     object-fit: contain !important;
-    object-position: center center !important;
+    object-position: center top !important;
+    background-position: center top !important;
+    background-size: contain !important;
+    background-repeat: no-repeat !important;
+    transition: none !important;
+    transform: none !important;
   }
 
   .short-feed-overlay .short-feed-video-box {
+    position: relative !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    overflow: hidden !important;
     background: #000 !important;
+    border-radius: 0 !important;
   }
 
   .short-feed-overlay .short-feed-video-box .video-js,
@@ -3666,19 +3684,15 @@ body.short-feed-open {
   }
 
   .short-feed-overlay .short-feed-video-box .vjs-poster {
-    background-position: center center !important;
-  }
-
-  .short-feed-overlay .short-feed-video-box.is-portrait-video video,
-  .short-feed-overlay .short-feed-video-box.is-portrait-video .video-js,
-  .short-feed-overlay .short-feed-video-box.is-portrait-video .vjs-tech,
-  .short-feed-overlay .short-feed-video-box.is-portrait-video .tcplayer,
-  .short-feed-overlay .short-feed-video-box.is-portrait-video .vjs-poster img {
-    object-position: center top !important;
-  }
-
-  .short-feed-overlay .short-feed-video-box.is-portrait-video .vjs-poster {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
     background-position: center top !important;
+    background-size: contain !important;
+    background-repeat: no-repeat !important;
+    transition: none !important;
+    transform: none !important;
   }
 
   .short-feed-overlay .short-feed-video-box.is-portrait-video::after {
