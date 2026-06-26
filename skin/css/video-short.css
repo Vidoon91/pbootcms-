@@ -140,16 +140,18 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  z-index: 24;
+  z-index: 30;
   padding: 10px 16px;
   border-radius: 999px;
   color: #fff;
   background: rgba(15, 23, 42, 0.72);
   font-size: 13px;
+  pointer-events: none;
   transform: translate(-50%, -50%);
 }
 
 .video-short-static-detail .short-feed-error {
+  z-index: 31;
   background: rgba(185, 28, 28, 0.82);
 }
 

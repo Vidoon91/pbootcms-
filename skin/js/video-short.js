@@ -383,6 +383,12 @@
         let playToken = 0;
         let initPromise = null;
         let pendingPlay = false;
+        let requestedMuted = false;
+        let firstMediaReadyResolved = false;
+        let resolveFirstMediaReady = null;
+        const firstMediaReadyPromise = new Promise(resolve => {
+            resolveFirstMediaReady = resolve;
+        });
         const LAYOUT_CLASSES = [
             'is-portrait-video',
             'is-landscape-video',
@@ -410,6 +416,31 @@
             }
 
             ctx.videoBox.classList.add('is-video-layout-pending');
+        }
+
+        function resolveMediaReady() {
+            if (firstMediaReadyResolved) return;
+            firstMediaReadyResolved = true;
+            resolveFirstMediaReady?.();
+        }
+
+        function applyPosterBackground() {
+            const poster = String(video.poster || '').trim();
+
+            if (!poster) {
+                ctx.videoBox.style.backgroundImage = '';
+                return;
+            }
+
+            ctx.videoBox.style.backgroundImage = `url("${poster.replace(/"/g, '\\"')}")`;
+            ctx.videoBox.style.backgroundRepeat = 'no-repeat';
+            ctx.videoBox.style.backgroundSize = 'contain';
+            ctx.videoBox.style.backgroundPosition = 'center center';
+            ctx.videoBox.style.backgroundColor = '#000';
+        }
+
+        function clearPosterBackground() {
+            ctx.videoBox.style.backgroundImage = '';
         }
 
         function setPlaying(playing) {
@@ -443,6 +474,15 @@
             if (ctx.progressBar) ctx.progressBar.style.width = `${percent}%`;
             if (ctx.currentTime) ctx.currentTime.textContent = formatVideoTime(current);
             if (ctx.duration && duration > 0) ctx.duration.textContent = formatVideoTime(duration);
+        }
+
+        function isPlayerPaused() {
+            if (!player || typeof player.paused !== 'function') return true;
+            return player.paused();
+        }
+
+        function shouldShowBuffering() {
+            return pendingPlay && !isPlayerPaused();
         }
 
         function updatePresentationMode() {
@@ -525,52 +565,87 @@
             if (!player || typeof player.on !== 'function') return;
 
             player.on('play', () => setPlaying(true));
-            player.on('playing', () => setPlaying(true));
+            player.on('playing', () => {
+                if (token !== playToken) return;
+                showSlideMessage('loading', false);
+                setPlaying(true);
+                clearPosterBackground();
+                resolveMediaReady();
+            });
             player.on('timeupdate', syncProgress);
             player.on('durationchange', syncProgress);
             player.on('loadedmetadata', () => {
                 if (token !== playToken) return;
 
                 syncProgress();
-
-                const layoutReady = updatePresentationMode();
-
-                if (layoutReady) {
-                    showSlideMessage('loading', false);
-                }
+                updatePresentationMode();
+                resolveMediaReady();
+            });
+            player.on('loadeddata', () => {
+                if (token !== playToken) return;
+                showSlideMessage('loading', false);
+            });
+            player.on('canplay', () => {
+                if (token !== playToken) return;
+                showSlideMessage('loading', false);
+                resolveMediaReady();
+            });
+            player.on('waiting', () => {
+                if (token !== playToken) return;
+                if (shouldShowBuffering()) showSlideMessage('loading', true);
+            });
+            player.on('stalled', () => {
+                if (token !== playToken) return;
+                if (shouldShowBuffering()) showSlideMessage('loading', true);
             });
             player.on('pause', () => {
+                pendingPlay = false;
                 syncProgress();
+                showSlideMessage('loading', false);
                 setPlaying(false);
             });
             player.on('ended', () => {
+                pendingPlay = false;
                 syncProgress();
+                showSlideMessage('loading', false);
                 setPlaying(false);
             });
             player.on('error', () => {
                 showSlideMessage('loading', false);
                 showSlideMessage('error', true);
                 setPlaying(false);
+                resolveMediaReady();
             });
         }
 
         function playExistingPlayer() {
             if (!player || typeof player.play !== 'function') return;
+
             const result = player.play();
-            if (result && typeof result.then === 'function') {
-                result.then(() => setPlaying(true)).catch(error => {
-                    setPlaying(false);
-                    console.warn('Detail video play was blocked:', error);
-                });
-            } else {
+
+            if (!result || typeof result.then !== 'function') {
                 setPlaying(true);
+                return;
             }
+
+            result
+                .then(() => {
+                    setPlaying(true);
+                })
+                .catch(error => {
+                    console.warn('Detail video autoplay was blocked:', error);
+                    pendingPlay = false;
+                    showSlideMessage('loading', false);
+                    setPlaying(false);
+                    resolveMediaReady();
+                });
         }
 
         async function initializePlayer() {
             if (player) return player;
             if (initPromise) return initPromise;
 
+            applyPosterBackground();
             showSlideMessage('error', false);
             showSlideMessage('loading', true);
             resetPresentationMode();
@@ -596,9 +671,9 @@
                     height: '100%',
                     controls: false,
                     autoplay: pendingPlay,
-                    muted: false,
+                    muted: requestedMuted,
                     playsinline: true,
-                    preload: 'none'
+                    preload: 'auto'
                 });
 
                 bindPlayerEvents(token);
@@ -611,13 +686,16 @@
 
                     const layoutReady = updatePresentationMode();
 
-                    if (layoutReady) {
-                        showSlideMessage('loading', false);
-                    } else {
+                    if (!layoutReady) {
                         showSlideMessage('loading', true);
                     }
 
-                    if (pendingPlay) {
+                    if (
+                        pendingPlay &&
+                        player &&
+                        typeof player.paused === 'function' &&
+                        player.paused()
+                    ) {
                         playExistingPlayer();
                     }
                 });
@@ -637,15 +715,28 @@
             return initPromise;
         }
 
-        async function play() {
+        async function play(options = {}) {
             pendingPlay = true;
+
+            if (typeof options.muted === 'boolean') {
+                requestedMuted = options.muted;
+            }
+
             if (player) {
+                if (
+                    typeof requestedMuted === 'boolean' &&
+                    typeof player.muted === 'function'
+                ) {
+                    player.muted(requestedMuted);
+                    syncSoundIcon();
+                }
+
                 playExistingPlayer();
                 return;
             }
+
             try {
                 await initializePlayer();
-                if (player) playExistingPlayer();
             } catch (error) {
                 // initializePlayer already surfaces the UI state.
             }
@@ -655,6 +746,15 @@
             pendingPlay = false;
             initializePlayer().catch(() => {
                 // initializePlayer already surfaces the UI state.
+            });
+        }
+
+        function startInitialAutoplay() {
+            pendingPlay = true;
+            requestedMuted = false;
+
+            initializePlayer().catch(() => {
+                resolveMediaReady();
             });
         }
 
@@ -678,7 +778,8 @@
 
         function toggleSound() {
             if (!player || typeof player.muted !== 'function') return;
-            player.muted(!player.muted());
+            requestedMuted = !player.muted();
+            player.muted(requestedMuted);
             syncSoundIcon();
         }
 
@@ -712,6 +813,10 @@
 
         return {
             play,
+            startInitialAutoplay,
+            whenMediaReady() {
+                return firstMediaReadyPromise;
+            },
             prepare,
             pause,
             toggle,
@@ -1024,7 +1129,7 @@
         );
 
         if (options.play === true) {
-            state.activePlayerController.play();
+            state.activePlayerController.play({ muted: false });
         } else {
             state.activePlayerController.prepare();
         }
@@ -1458,9 +1563,11 @@
         bindPlayerSurfaceEvents(pageCtx, state, panelController, formController, productCarousel);
         bindHistoryEvents(pageCtx, state);
         writeHistory(currentRecord, true);
-        playerController.prepare();
-        initMobileFeed(pageCtx, state).catch(error => {
-            console.warn('Mobile short detail feed init failed:', error);
+        playerController.startInitialAutoplay();
+        playerController.whenMediaReady().finally(() => {
+            initMobileFeed(pageCtx, state).catch(error => {
+                console.warn('Mobile short detail feed init failed:', error);
+            });
         });
 
         window.addEventListener('beforeunload', () => {
