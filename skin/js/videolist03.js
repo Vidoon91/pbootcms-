@@ -1,4 +1,12 @@
-document.addEventListener('DOMContentLoaded', function() {
+/* videolist03.js: filters, navigation state, and short-feed playback. */
+
+function initVideoListPage() {
+    initVideoFilters();
+    initVideoNavigationState();
+    initShortFeed();
+}
+
+function initVideoFilters() {
     const filterContainer = document.getElementById('videoFilterContainer');
     const filterToggle = document.getElementById('videoFilterToggle');
     if (filterContainer && filterToggle) {
@@ -67,6 +75,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     updateCount();
+}
+
+function initVideoNavigationState() {
     document.querySelectorAll('.nav-link[href*="video"]').forEach(link => link.classList.add('active'));
     document.querySelectorAll('.sidebar-item a[href*="videolist"]').forEach(link => {
         if (link.parentElement) link.parentElement.classList.add('active');
@@ -74,9 +85,12 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.tab-item a[href*="videolist"]').forEach(link => {
         if (link.parentElement) link.parentElement.classList.add('active');
     });
-});
+}
 
-document.addEventListener('DOMContentLoaded', function() {
+function initShortFeed() {
+    /* ========================================
+       1. DOM and configuration
+       ======================================== */
     const list = document.getElementById('verticalVideoList');
     const cards = Array.from(document.querySelectorAll('[data-short-video-card]'));
     const overlay = document.getElementById('shortFeedOverlay');
@@ -87,9 +101,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const nextBtn = document.getElementById('shortFeedNext');
     const signApi = '/api/tencent-vod-psign.php';
     const siteLogo = overlay?.dataset.siteLogo || '/skin/images/default-avatar.svg';
+    const ACTION_PANEL_SELECTOR = [
+        '.short-feed-cart-panel',
+        '.short-feed-comment-panel',
+        '.short-feed-share-panel',
+        '.short-feed-ai-panel',
+        '.short-feed-intro-panel',
+        '.short-feed-quote-panel'
+    ].join(',');
+    const ACTIVE_ACTION_PANEL_SELECTOR = ACTION_PANEL_SELECTOR
+        .split(',')
+        .map(selector => `${selector}.active`)
+        .join(',');
 
     if (!cards.length || !overlay || !wrapper) return;
 
+    /* ========================================
+       2. Runtime state
+       ======================================== */
     let swiper = null;
     let activePlayer = null;
     let activePlayerId = '';
@@ -98,6 +127,10 @@ document.addEventListener('DOMContentLoaded', function() {
     let slidesRendered = false;
     let listUrl = window.location.href;
     let isOpen = false;
+
+    /* ========================================
+       3. Video data parsing
+       ======================================== */
     const videos = cards.map((card, index) => {
         const extra = card.querySelector('.short-video-card-extra');
         const mobileCopyNode = extra?.querySelector('.short-video-mobile-copy') || null;
@@ -125,6 +158,9 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     });
 
+    /* ========================================
+       4. Shared utilities
+       ======================================== */
     function escapeHtml(value) {
         return String(value || '').replace(/[&<>"']/g, char => ({
             '&': '&amp;',
@@ -135,6 +171,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }[char]));
     }
 
+    /* ========================================
+       5. Slide and recommendation rendering
+       ======================================== */
     function renderSlides() {
         if (slidesRendered) return;
         wrapper.innerHTML = '';
@@ -256,6 +295,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         recommendList.appendChild(fragment);
     }
+
+    /* ========================================
+       6. URL and history
+       ======================================== */
     function getActiveIndex() {
         if (!swiper) return 0;
         return Number(swiper.slides[swiper.activeIndex]?.dataset.index || 0);
@@ -279,6 +322,9 @@ document.addEventListener('DOMContentLoaded', function() {
         history.pushState(state, '', targetUrl);
     }
 
+    /* ========================================
+       7. Playback controls and progress
+       ======================================== */
     function showSlideMessage(slide, type, visible) {
         const node = slide?.querySelector(type === 'error' ? '.short-feed-error' : '.short-feed-loading');
         if (node) node.hidden = !visible;
@@ -341,18 +387,9 @@ document.addEventListener('DOMContentLoaded', function() {
         wrapper.querySelectorAll('.video-card-container').forEach(card => card.classList.remove('playing'));
     }
 
-    function pauseActivePlayer() {
-        if (activePlayer && typeof activePlayer.pause === 'function') {
-            try {
-                activePlayer.pause();
-            } catch (error) {
-                console.warn('Pause short feed player failed:', error);
-            }
-        }
-
-        clearPlayingState();
-    }
-
+    /* ========================================
+       8. Slide video layout adaptation
+       ======================================== */
     function createVideoMarkup(video) {
         const videoId = `shortFeedVideo_${video.id || video.index}`;
         return `
@@ -429,6 +466,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         return true;
+    }
+
+    /* ========================================
+       9. TCPlayer lifecycle
+       ======================================== */
+    function pauseActivePlayer() {
+        if (activePlayer && typeof activePlayer.pause === 'function') {
+            try {
+                activePlayer.pause();
+            } catch (error) {
+                console.warn('Pause short feed player failed:', error);
+            }
+        }
+
+        clearPlayingState();
     }
 
     function destroyActivePlayer() {
@@ -710,6 +762,9 @@ document.addEventListener('DOMContentLoaded', function() {
         countNode.textContent = String(value + 1);
     }
 
+    /* ========================================
+       10. Action panels
+       ======================================== */
     function copyShareLink() {
         const url = videos[getActiveIndex()]?.url || window.location.href;
         if (navigator.share) {
@@ -826,29 +881,29 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function getActionPanelRoot(node) {
-        return node?.closest('.short-feed-cart-panel,.short-feed-comment-panel,.short-feed-share-panel,.short-feed-ai-panel,.short-feed-intro-panel,.short-feed-quote-panel') || null;
+        return node?.closest(ACTION_PANEL_SELECTOR) || null;
     }
 
     function closeActionPanel(panel) {
         if (!panel) return;
         panel.classList.remove('active');
-        const hasActivePanel = !!document.querySelector('.short-feed-cart-panel.active,.short-feed-comment-panel.active,.short-feed-share-panel.active,.short-feed-ai-panel.active,.short-feed-intro-panel.active,.short-feed-quote-panel.active');
+        const hasActivePanel = !!document.querySelector(ACTIVE_ACTION_PANEL_SELECTOR);
         if (!hasActivePanel) {
             document.getElementById('shortFeedPanelMask')?.classList.remove('active');
         }
     }
 
-    document.addEventListener('click', event => {
+    function handlePanelCloseClick(event) {
         const closeBtn = event.target.closest('[data-short-panel-close]');
         if (!closeBtn) return;
         event.preventDefault();
         event.stopPropagation();
         closeActionPanel(getActionPanelRoot(closeBtn));
-    }, true);
+    }
 
     function closeActionPanels() {
         document.getElementById('shortFeedPanelMask')?.classList.remove('active');
-        document.querySelectorAll('.short-feed-cart-panel,.short-feed-comment-panel,.short-feed-share-panel,.short-feed-ai-panel,.short-feed-intro-panel,.short-feed-quote-panel').forEach(panel => panel.classList.remove('active'));
+        document.querySelectorAll(ACTION_PANEL_SELECTOR).forEach(panel => panel.classList.remove('active'));
     }
 
     function showActionPanel(panelId) {
@@ -941,6 +996,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (comments) comments.scrollTop = comments.scrollHeight;
     }
 
+    /* ========================================
+       11. Swiper lifecycle
+       ======================================== */
     function setSwiperEnabled(enabled) {
         if (!swiper) return;
 
@@ -1030,6 +1088,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    /* ========================================
+       12. Feed open and close
+       ======================================== */
     function openFeed(index, options = {}) {
         renderSlides();
 
@@ -1094,6 +1155,9 @@ document.addEventListener('DOMContentLoaded', function() {
         );
     }
 
+    /* ========================================
+       13. Event handlers
+       ======================================== */
     function handleCardClick(event) {
         if (event.ctrlKey || event.metaKey || event.shiftKey || event.button === 1) return;
 
@@ -1108,15 +1172,19 @@ document.addEventListener('DOMContentLoaded', function() {
         openFeed(index);
     }
 
-    if (list) {
-        list.addEventListener('click', handleCardClick, true);
+    function handleCloseButtonClick() {
+        closeFeed(true);
     }
 
-    closeBtn?.addEventListener('click', () => closeFeed(true));
-    prevBtn?.addEventListener('click', () => swiper?.slidePrev());
-    nextBtn?.addEventListener('click', () => swiper?.slideNext());
+    function handlePrevButtonClick() {
+        swiper?.slidePrev();
+    }
 
-    recommendList?.addEventListener('click', event => {
+    function handleNextButtonClick() {
+        swiper?.slideNext();
+    }
+
+    function handleRecommendClick(event) {
         if (event.target.closest('[data-detail-close]')) {
             event.preventDefault();
             closeFeed(true);
@@ -1158,9 +1226,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const item = event.target.closest('.short-feed-rec-item');
         if (!item || !swiper) return;
         swiper.slideTo(Number(item.dataset.index || 0));
-    });
+    }
 
-    wrapper.addEventListener('click', event => {
+    function handleWrapperClick(event) {
         const detailTagLink = event.target.closest('.short-feed-desktop-detail a[href], .video-info-overlay a[href]');
         if (detailTagLink) {
             event.stopPropagation();
@@ -1318,9 +1386,9 @@ document.addEventListener('DOMContentLoaded', function() {
         event.preventDefault();
         event.stopPropagation();
         toggleActivePlayback();
-    });
+    }
 
-    wrapper.addEventListener('keydown', event => {
+    function handleWrapperKeydown(event) {
         const mobileInput = event.target.closest('[data-mobile-comment-input]');
         if (mobileInput && event.key === 'Enter') {
             event.preventDefault();
@@ -1332,9 +1400,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!input || event.key !== 'Enter') return;
         event.preventDefault();
         submitDesktopComment(input);
-    });
+    }
 
-    wrapper.addEventListener('pointerdown', event => {
+    function handleProgressPointerDown(event) {
         const track = event.target.closest('.video-progress-track');
         if (!track) return;
         event.preventDefault();
@@ -1354,17 +1422,17 @@ document.addEventListener('DOMContentLoaded', function() {
         window.addEventListener('pointermove', handlePointerMove, { passive: false });
         window.addEventListener('pointerup', handlePointerUp);
         window.addEventListener('pointercancel', handlePointerUp);
-    });
+    }
 
-    overlay.addEventListener('click', event => {
+    function handleOverlayClick(event) {
         if (event.target === overlay) closeFeed(true);
-    });
+    }
 
-    window.addEventListener('keydown', event => {
+    function handleWindowKeydown(event) {
         if (event.key === 'Escape' && isOpen) closeFeed(true);
-    });
+    }
 
-    window.addEventListener('popstate', event => {
+    function handlePopState(event) {
         const historyState = event.state;
 
         if (historyState?.shortFeed) {
@@ -1385,7 +1453,37 @@ document.addEventListener('DOMContentLoaded', function() {
         if (isOpen) {
             closeFeed(false);
         }
-    });
+    }
 
-    window.addEventListener('beforeunload', destroyActivePlayer);
+    function destroyShortFeed() {
+        destroyActivePlayer();
+    }
+
+    /* ========================================
+       14. Event binding
+       ======================================== */
+    function bindShortFeedEvents() {
+        if (list) {
+            list.addEventListener('click', handleCardClick, true);
+        }
+
+        closeBtn?.addEventListener('click', handleCloseButtonClick);
+        prevBtn?.addEventListener('click', handlePrevButtonClick);
+        nextBtn?.addEventListener('click', handleNextButtonClick);
+        recommendList?.addEventListener('click', handleRecommendClick);
+        wrapper.addEventListener('click', handleWrapperClick);
+        wrapper.addEventListener('keydown', handleWrapperKeydown);
+        wrapper.addEventListener('pointerdown', handleProgressPointerDown);
+        overlay.addEventListener('click', handleOverlayClick);
+        window.addEventListener('keydown', handleWindowKeydown);
+        window.addEventListener('popstate', handlePopState);
+        window.addEventListener('beforeunload', destroyShortFeed);
+        document.addEventListener('click', handlePanelCloseClick, true);
+    }
+
+    bindShortFeedEvents();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    initVideoListPage();
 });

@@ -1,6 +1,9 @@
 ﻿﻿/* ===================================
    视频列表页面专用样式
    =================================== */
+/* ==================================================
+   1. 页面基础与面包屑
+   ================================================== */
 /* ---------- 面包屑导航 ---------- */
 .breadcrumb-stats-container {
   display: flex;
@@ -71,6 +74,9 @@
 }
 
 
+/* ==================================================
+   2. 视频列表卡片
+   ================================================== */
 /* ---------- 横版视频卡片 ---------- */
 .video-card {
   background: white;
@@ -351,6 +357,9 @@
 }
 
 
+/* ==================================================
+   3. 筛选模块
+   ================================================== */
 /* ---------- 视频筛选模块 ---------- */
 .video-filter-section {
   margin: 16px 0 12px;
@@ -541,6 +550,9 @@
 }
 
 
+/* ==================================================
+   4. 分页与 CTA
+   ================================================== */
 /* ---------- 分页样式 ---------- */
 .video-pagination,
 .video-pagination .page-numbar {
@@ -1116,9 +1128,9 @@
   color: #f3f4f6;
 }
 
-/* ===================================
-   Shorts 沉浸式播放弹层
-   =================================== */
+/* ==================================================
+   5. 短视频弹窗基础
+   ================================================== */
 body.short-feed-open {
   overflow: hidden;
 }
@@ -1183,10 +1195,16 @@ body.short-feed-open {
   pointer-events: none;
 }
 
+.short-feed-video-box .tcplayer,
+.short-feed-video-box .video-js {
+  width: 100% !important;
+  height: 100% !important;
+  position: relative;
+  z-index: 1;
+}
+
 .short-feed-video-box video,
 .short-feed-video-box .tcp-video,
-.short-feed-video-box .tcplayer,
-.short-feed-video-box .video-js,
 .short-feed-video-box .vjs-tech {
   width: 100% !important;
   height: 100% !important;
@@ -1372,6 +1390,9 @@ body.short-feed-open {
   }
 }
 
+/* ==================================================
+   6. 短视频 Swiper 与播放布局
+   ================================================== */
 /* 详情页同款短视频播放弹层 */
 .short-feed-overlay {
   background: rgba(8, 12, 20, 0.88);
@@ -1786,7 +1807,9 @@ body.short-feed-open {
   }
 }
 
-/* Final override: keep the popup backdrop, make the inner player match video-short.html. */
+/* ==================================================
+   7. 播放器容器、真实视频画面与控制层
+   ================================================== */
 .short-feed-overlay:not([hidden]) {
   display: flex;
   align-items: center;
@@ -1836,10 +1859,15 @@ body.short-feed-open {
   background: #050505;
 }
 
-.short-feed-overlay .short-feed-video-box video,
 .short-feed-overlay .short-feed-video-box .video-js,
-.short-feed-overlay .short-feed-video-box .vjs-tech,
 .short-feed-overlay .short-feed-video-box .tcplayer {
+  width: 100% !important;
+  height: 100% !important;
+  background: transparent !important;
+}
+
+.short-feed-overlay .short-feed-video-box > video,
+.short-feed-overlay .short-feed-video-box .vjs-tech {
   width: 100% !important;
   height: 100% !important;
   object-fit: contain !important;
@@ -2160,6 +2188,9 @@ body.short-feed-open {
   scrollbar-width: none;
 }
 
+/* ==================================================
+   10. PC 详情与推荐
+   ================================================== */
 .short-feed-overlay .short-feed-detail-card {
   position: relative;
   width: 100%;
@@ -2451,6 +2482,9 @@ body.short-feed-open {
 }
 
 @media (min-width: 769px) {
+  /* ==================================================
+     11. PC 响应式
+     ================================================== */
   .short-feed-overlay .short-feed-swiper {
     width: 800px !important;
     flex-basis: 800px !important;
@@ -2846,7 +2880,9 @@ body.short-feed-open {
   white-space: nowrap;
 }
 
-/* Reuse video-short.html popup visuals inside the list overlay. */
+/* ==================================================
+   12. 操作面板
+   ================================================== */
 .short-feed-modal-overlay {
   position: fixed;
   inset: 0;
@@ -3501,7 +3537,9 @@ body.short-feed-open {
   }
 }
 
-/* Mobile final override: keep it full screen without touching global page chrome. */
+/* ==================================================
+   14. 移动端响应式 - Viewport 与 Swiper
+   ================================================== */
 @media (max-width: 768px) {
   body.short-feed-open {
     --short-feed-mobile-tab-height: 58px;
@@ -3555,10 +3593,15 @@ body.short-feed-open {
     display: none !important;
   }
 
-  .short-feed-overlay .short-feed-video-box video,
   .short-feed-overlay .short-feed-video-box .video-js,
-  .short-feed-overlay .short-feed-video-box .vjs-tech,
   .short-feed-overlay .short-feed-video-box .tcplayer {
+    width: 100% !important;
+    height: 100% !important;
+    background: #000 !important;
+  }
+
+  .short-feed-overlay .short-feed-video-box > video,
+  .short-feed-overlay .short-feed-video-box .vjs-tech {
     width: 100% !important;
     height: 100% !important;
     object-fit: contain !important;
@@ -3622,6 +3665,7 @@ body.short-feed-open {
 }
 
 @media (max-width: 768px) {
+  /* Mobile Player & Media */
   body.short-feed-open {
     --short-feed-mobile-top-height: 54px;
     --short-feed-mobile-bottom-height: 58px;
@@ -3743,6 +3787,7 @@ body.short-feed-open {
     z-index: 2;
   }
 
+  /* Mobile Fixed UI */
   .short-feed-overlay .short-feed-close,
   body.short-feed-open .mobile-tabbar {
     display: none !important;
