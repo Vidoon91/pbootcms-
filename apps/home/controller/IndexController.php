@@ -267,8 +267,12 @@ class IndexController extends Controller
     private function getListPage($sort)
     {
         // 调用栏目语言与当前语言不一致时，自动切换语言
-        if ($sort->acode != get_lg() && Config::get('lgautosw') !== '0') {
-            _404('The requested page does not exist in the current language.');
+        if ($sort->acode != get_lg()) {
+            if (LanguageRouter::isEnabled()) {
+                _404('The requested page does not exist in the current language.');
+            } elseif (Config::get('lgautosw') !== '0') {
+                cookie('lg', $sort->acode);
+            }
         }
         if ($sort->listtpl) {
             $this->checkPageLevel($sort->gcode, $sort->gtype, $sort->gnote);
@@ -293,8 +297,12 @@ class IndexController extends Controller
     {
         
         // 调用内容语言与当前语言不一致时，自动切换语言
-        if ($data->acode != get_lg() && Config::get('lgautosw') !== '0') {
-            _404('The requested content does not exist in the current language.');
+        if ($data->acode != get_lg()) {
+            if (LanguageRouter::isEnabled()) {
+                _404('The requested content does not exist in the current language.');
+            } elseif (Config::get('lgautosw') !== '0') {
+                cookie('lg', $data->acode);
+            }
         }
         
         // 读取模板
@@ -325,8 +333,12 @@ class IndexController extends Controller
     private function getAboutPage($sort)
     {
         // 调用栏目语言与当前语言不一致时，自动切换语言
-        if ($sort->acode != get_lg() && Config::get('lgautosw') !== '0') {
-            _404('The requested page does not exist in the current language.');
+        if ($sort->acode != get_lg()) {
+            if (LanguageRouter::isEnabled()) {
+                _404('The requested page does not exist in the current language.');
+            } elseif (Config::get('lgautosw') !== '0') {
+                cookie('lg', $sort->acode);
+            }
         }
         
         // 读取数据

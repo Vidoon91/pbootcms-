@@ -98,7 +98,8 @@ class ParserModel extends Model
             )
         );
         return parent::table('ay_content_sort a')->field($field)
-            ->where("a.scode='$scode' OR a.filename='$scode'")
+            ->where("(a.scode='$scode' OR a.filename='$scode')")
+            ->where("a.acode='" . get_lg() . "'")
             ->join($join)
             ->find();
     }
@@ -649,7 +650,8 @@ class ParserModel extends Model
             )
         );
         $result = parent::table('ay_content a')->field($field)
-            ->where("a.id='$id' OR a.filename='$id'")
+            ->where("(a.id='$id' OR a.filename='$id')")
+            ->where("a.acode='" . get_lg() . "'")
             ->where('a.status=1')
             ->where("a.date<'" . date('Y-m-d H:i:s') . "'")
             ->join($join)
@@ -698,7 +700,8 @@ class ParserModel extends Model
             )
         );
         $result = parent::table('ay_content a')->field($field)
-            ->where("a.scode='$scode' OR b.filename='$scode'")
+            ->where("(a.scode='$scode' OR b.filename='$scode')")
+            ->where("a.acode='" . get_lg() . "'")
             ->where('a.status=1')
             ->join($join)
             ->decode()

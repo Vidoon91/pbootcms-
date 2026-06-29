@@ -10,6 +10,7 @@ namespace app\home\controller;
 
 use core\basic\Controller;
 use app\home\model\DoModel;
+use app\common\LanguageRouter;
 
 class DoController extends Controller
 {
@@ -27,6 +28,17 @@ class DoController extends Controller
 		forbWords(URL);
         $lg = request('lg', 'var');
         if ($lg) {
+            if (function_exists('cache_config')) {
+                cache_config();
+            }
+            if (class_exists('\\app\\common\\LanguageRouter') && LanguageRouter::isEnabled()) {
+                $target = LanguageRouter::buildLanguageSwitchUrl($lg);
+                if ($target) {
+                    header('Location: ' . $target, true, 302);
+                    exit();
+                }
+                _404('The requested language does not exist.');
+            }
             $lgs = $this->config('lgs');
             if (isset($lgs[$lg])) {
                 cookie('lg', $lg);
@@ -91,6 +103,5 @@ class DoController extends Controller
         }
     }
 }
-
 
 

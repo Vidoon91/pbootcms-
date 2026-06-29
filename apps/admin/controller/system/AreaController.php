@@ -10,6 +10,7 @@ namespace app\admin\controller\system;
 
 use core\basic\Controller;
 use app\admin\model\system\AreaModel;
+use app\common\LanguageRouter;
 
 class AreaController extends Controller
 {
@@ -94,7 +95,7 @@ class AreaController extends Controller
 			$acode = str_replace(array('<', '>', '&lt;', '&gt;', '&#039;', '(', ')'),'',$acode);
 			$pcode = str_replace(array('<', '>', '&lt;', '&gt;', '&#039;', '(', ')'),'',$pcode);
 			$name = str_replace(array('<', '>', '&lt;', '&gt;', '&#039;', '(', ')'),'',$name);
-            $domain = post('domain');
+            $domain = $this->normalizeDomain(post('domain'));
             $directory = $this->normalizeDirectory(post('directory'));
             $language_sort = post('language_sort', 'int');
             $flag_icon = trim(post('flag_icon'));
@@ -207,8 +208,9 @@ class AreaController extends Controller
             error('传递的参数值错误！', - 1);
         }
         
-        if ($acode == 'cn') {
-            error('系统内置区域不允许删除！', - 1);
+        $area = $this->model->getArea($acode);
+        if ($area && ! empty($area->is_default)) {
+            error('默认区域不允许删除！', - 1);
         }
         
         if ($this->model->delArea($acode)) {
@@ -238,7 +240,7 @@ class AreaController extends Controller
 			$acode_new = str_replace(array('<', '>', '&lt;', '&gt;', '&#039;', '(', ')'),'',$acode_new);
 			$pcode = str_replace(array('<', '>', '&lt;', '&gt;', '&#039;', '(', ')'),'',$pcode);
 			$name = str_replace(array('<', '>', '&lt;', '&gt;', '&#039;', '(', ')'),'',$name);
-            $domain = post('domain');
+            $domain = $this->normalizeDomain(post('domain'));
             $directory = $this->normalizeDirectory(post('directory'));
             $language_sort = post('language_sort', 'int');
             $flag_icon = trim(post('flag_icon'));
@@ -342,10 +344,19 @@ class AreaController extends Controller
         if (! preg_match('/^[a-z0-9][a-z0-9-]*$/', $directory)) {
             alert_back('语言目录只能使用小写字母、数字和中划线！');
         }
-        $reserved = array('admin', 'api', 'apps', 'core', 'config', 'data', 'runtime', 'static', 'skin', 'template', 'upload', 'uploads');
+        $reserved = LanguageRouter::reservedDirectories();
         if (in_array($directory, $reserved, true)) {
             alert_back('该语言目录为系统保留目录，不能使用！');
         }
         return $directory;
+    }
+
+    private function normalizeDomain($domain)
+    {
+        $domain = LanguageRouter::normalizeHost($domain);
+        if ($domain && ! preg_match('/^[a-z0-9][a-z0-9.-]*[a-z0-9]$/', $domain)) {
+            alert_back('要绑定的域名输入有错！');
+        }
+        return $domain;
     }
 }

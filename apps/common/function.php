@@ -218,7 +218,7 @@ function get_default_lg()
 // 获取当前语言并进行安全处理
 function get_lg()
 {
-    if (class_exists('\\app\\common\\LanguageRouter')) {
+    if (class_exists('\\app\\common\\LanguageRouter') && LanguageRouter::isEnabled()) {
         $routerLg = LanguageRouter::getCurrentAreaCode();
         if ($routerLg && preg_match('/^[\w\-]+$/', $routerLg)) {
             cookie('lg', $routerLg);
@@ -260,4 +260,3 @@ function post_baidu($api, $urls)
     $result = json_decode(curl_exec($ch));
     return $result;
 }
-
