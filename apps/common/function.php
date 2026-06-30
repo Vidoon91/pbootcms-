@@ -217,8 +217,9 @@ function get_default_lg()
 // 获取当前语言并进行安全处理
 function get_lg()
 {
+    $lgs = Config::get('lgs');
     $lg = cookie('lg');
-    if (! $lg || ! preg_match('/^[\w\-]+$/', $lg)) {
+    if (! $lg || ! preg_match('/^[\w\-]+$/', $lg) || ! isset($lgs[$lg])) {
         $lg = get_default_lg();
         cookie('lg', $lg);
     }
@@ -230,7 +231,11 @@ function get_theme()
 {
     $lgs = Config::get('lgs');
     $lg = get_lg();
-    return $lgs[$lg]['theme'];
+    if (isset($lgs[$lg]['theme']) && $lgs[$lg]['theme']) {
+        return $lgs[$lg]['theme'];
+    }
+    $default = current($lgs);
+    return isset($default['theme']) ? $default['theme'] : 'default';
 }
 
 // 推送百度
